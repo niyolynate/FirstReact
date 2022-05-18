@@ -1,0 +1,12 @@
+
+function startPolling(id) {
+    return new Promise((resolve, reject) => {
+        function poll(id) {
+            client.getQueryExecution({QueryExecutionId: id}, (err, data) => {
+                if (err) return reject(err)
+                if (data.QueryExecution.Status.State === 'SUCCEEDED') return resolve(id)
+                else if (['FAILED', 'CANCELLED'].includes(data.QueryExecution.Status.State)) return reject(new Error(`Query ${data.QueryExecution.Status.State}`))
+                else { setTimeout(poll, POLL_INTERVAL, id) }
+            })
+        }
+        poll(id)
